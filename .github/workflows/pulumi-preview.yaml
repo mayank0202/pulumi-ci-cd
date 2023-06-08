@@ -37,14 +37,25 @@ jobs:
            pulumi stack ls 
 
       - name: Loop over stacks and perform preview
+        env:
+          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
-          for stack in "dev" "prod"; do
-          pulumi stack select $stack
-          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep $stack)
+          pulumi stack select dev
+          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep dev)
           if [ -z "$stack_exists" ]; then
-          pulumi stack init --stack $stack
+          pulumi stack init dev
           fi
           pulumi preview
-          done
+
+          pulumi stack select prod
+          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
+          if [ -z "$stack_exists" ]; then
+          pulumi stack init prod
+          pulumi stack select prod
+          pulumi preview
+          else
+          pulumi stack select prod
+          pulumi preview
+          fi
 
 
