@@ -36,22 +36,20 @@ jobs:
            export PULUMI_CONFIG_PASSPHRASE=falkor
            pulumi stack ls 
 
-      - name: Loop over stacks and perform preview
-        env:
-          PULUMI_CONFIG_PASSPHRASE: "falkor"
-        run: |
-          pulumi stack select dev
-          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep dev)
-          if [ -z "$stack_exists" ]; then
-          pulumi stack init dev
-          fi
-          pulumi preview
-          fi
-          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
-          if [ -z "$stack_exists" ]; then
-          pulumi stack init prod
-          fi
-          pulumi stack select prod
-          pulumi preview
+      name: Loop over stacks and perform preview
+      env:
+        PULUMI_CONFIG_PASSPHRASE: "falkor"
+      run: |
+        dev_stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep dev)
+        if [ -z "$dev_stack_exists" ]; then
+        pulumi stack init dev
+        fi
+        pulumi preview
+        prod_stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
+        if [ -z "$prod_stack_exists" ]; then
+        pulumi stack init prod
+        else
+        pulumi preview
+        fi
 
 
