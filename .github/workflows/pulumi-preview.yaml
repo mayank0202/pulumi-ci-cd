@@ -45,14 +45,16 @@ jobs:
            if [ $dev_stack_exists -ne 0 ]; then
            pulumi stack init dev
            fi
-           pulumi stack select dev
-           pulumi preview
 
            pulumi stack ls --json | jq -r '.[].name' | grep -q "prod"
            prod_stack_exists=$?
            if [ $prod_stack_exists -ne 0 ]; then
            pulumi stack init prod
            fi
+
+           pulumi stack select dev
+           pulumi preview
+
            pulumi stack select prod
            pulumi preview
 
