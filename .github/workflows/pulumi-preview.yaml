@@ -40,16 +40,19 @@ jobs:
         env:
          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
-          dev_stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep dev)
-          if [ -z "$dev_stack_exists" ]; then
-          pulumi stack init dev
-          fi
-          pulumi preview
-          prod_stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
-          if [ -z "$prod_stack_exists" ]; then
-          pulumi stack init prod
-          else
-          pulumi preview
-          fi
+           pulumi stack ls --json | jq -r '.[].name' | grep -q "dev"
+           dev_stack_exists=$?
+           if [ $dev_stack_exists -ne 0 ]; then
+           pulumi stack init dev
+           fi
+           pulumi stack select dev
+           pulumi preview
 
+           pulumi stack ls --json | jq -r '.[].name' | grep -q "prod"
+           prod_stack_exists=$?
+           if [ $prod_stack_exists -ne 0 ]; then
+           pulumi stack init prod
+           fi
+           pulumi stack select prod
+           pulumi preview
 
