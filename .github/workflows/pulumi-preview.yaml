@@ -25,14 +25,7 @@ jobs:
           aws-region: 'us-east-1'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Configure Pulumi backend
-        run: |
-          pulumi config set aws:region us-east-1
-          pulumi config set --secret aws:accessKeyID ${{ secrets.AWS_ACCESS_KEY_ID }}
-          pulumi config set --secret aws:secretAccessKey ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          
+        run: npm ci      
 
       - name: pulumi login s3
         run: |
