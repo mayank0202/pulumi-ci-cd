@@ -51,11 +51,8 @@ jobs:
           stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
           if [ -z "$stack_exists" ]; then
           pulumi stack init prod
-          pulumi stack select prod
-          pulumi preview
-          else
-          pulumi stack select prod
-          pulumi preview
           fi
+          pulumi stack select prod
+          pulumi preview
 
 
