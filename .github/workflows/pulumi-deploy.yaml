@@ -1,0 +1,54 @@
+name: Pulumi Deploy
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  pulumi-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          export PATH=$HOME/.pulumi/bin:$PATH
+          pulumi version  
+
+      - name: Install dependencies
+        run: npm install  # or yarn install  
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-east-1'     
+
+      - name: pulumi login s3
+        run: |
+           pulumi login s3://pulumi-ci-cd
+      
+      - name: pulumi stacks
+        run: |
+           export PULUMI_CONFIG_PASSPHRASE=falkor
+           pulumi stack ls 
+
+      - name: pulumi up
+        env:
+         PULUMI_CONFIG_PASSPHRASE: "falkor"
+        run: |
+           pulumi stack select dev || pulumi stack init dev
+           pulumi up --yes
+
+           pulumi stack select prod || pulumi stack init prod
+           pulumi up --yes
+
