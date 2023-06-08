@@ -38,11 +38,12 @@ jobs:
 
       - name: Loop over stacks and perform preview
         run: |
-          for stack in "dev prod"; do
-            pulumi stack select $stack
-            stack_exists=$(pulumi stack exists --stack $stack)
-            if [ "$stack_exists" == "false" ]; then
-              pulumi stack init --stack $stack
-            fi
-            pulumi preview --stack $stack
+          for stack in "dev" "prod"; do
+          pulumi stack select $stack
+          stack_exists=$(pulumi stack exists)
+          if [ "$stack_exists" == "false" ]; then
+          pulumi stack init --stack $stack
+          fi
+          pulumi preview
           done
+
