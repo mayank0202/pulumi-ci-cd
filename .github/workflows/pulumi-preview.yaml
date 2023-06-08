@@ -21,7 +21,10 @@ jobs:
         run: |
           curl -fsSL https://get.pulumi.com | sh
           export PATH=$HOME/.pulumi/bin:$PATH
-          pulumi version    
+          pulumi version  
+
+      - name: Install dependencies
+        run: npm install  # or yarn install  
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
