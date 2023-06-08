@@ -47,7 +47,6 @@ jobs:
           fi
           pulumi preview
 
-          pulumi stack select prod
           stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep prod)
           if [ -z "$stack_exists" ]; then
           pulumi stack init prod
