@@ -38,13 +38,13 @@ jobs:
 
       - name: Loop over stacks and perform preview
         run: |
-        for stack in "dev" "prod"; do
-        pulumi stack select $stack
-        stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep $stack)
-        if [ -z "$stack_exists" ]; then
-        pulumi stack init --stack $stack
-        fi
-        pulumi preview
-        done
+          for stack in "dev" "prod"; do
+          pulumi stack select $stack
+          stack_exists=$(pulumi stack ls --json | jq -r '.[].name' | grep $stack)
+          if [ -z "$stack_exists" ]; then
+          pulumi stack init --stack $stack
+          fi
+          pulumi preview
+          done
 
 
