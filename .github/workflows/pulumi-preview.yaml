@@ -1,0 +1,46 @@
+name: Pulumi Preview
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pulumi-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-east-1'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Pulumi backend
+        run: |
+          pulumi config set aws:region us-east-1
+          pulumi config set --secret aws:accessKeyID ${{ secrets.AWS_ACCESS_KEY_ID }}
+          pulumi config set --secret aws:secretAccessKey ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          pulumi config set pulumi:backend s3://pulumi-ci-cd --secrets-provider=passphrase=falkor
+
+      - name: Loop over stacks and perform preview
+        run: |
+          for stack in "dev prod"; do
+            pulumi stack select $stack
+            stack_exists=$(pulumi stack exists --stack $stack)
+            if [ "$stack_exists" == "false" ]; then
+              pulumi stack init --stack $stack
+            fi
+            pulumi preview --stack $stack
+          done
