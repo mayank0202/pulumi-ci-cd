@@ -54,22 +54,23 @@ jobs:
 
       - name: Configure AWS credentials
         run: |
-          environment=${{ github.event.inputs.environment }}
-          aws configure set aws_access_key_id ${{ env[environment + '_ACCESS_KEY'] }}
-          aws configure set aws_secret_access_key ${{ env[environment + '_SECRET_ACCESS_KEY'] }}
-          aws configure set region ${{ env[environment + '_REGION'] }}   
+          environment=$ENVIRONMENT
+          echo "[default]" >> $HOME/.aws/credentials
+          echo "aws_access_key_id=${{ env[format('{0}_ACCESS_KEY', environment)] }}" >> $HOME/.aws/credentials
+          echo "aws_secret_access_key=${{ env[format('{0}_SECRET_ACCESS_KEY', environment)] }}" >> $HOME/.aws/credentials
+          echo "region=${{ env[format('{0}_REGION', environment)] }}" >> $HOME/.aws/credentials
 
       - name: pulumi login s3
         run: |
-            environment=${{ github.event.inputs.environment }}
-            pulumi login s3://${{ env[environment + '_BUCKET_NAME'] }}
-      
+            environment=$ENVIRONMENT
+            pulumi login s3://${{ env[format('{0}_BUCKET_NAME', environment)] }}
+ 
       - name: pulumi stacks
         run: |
            export PULUMI_CONFIG_PASSPHRASE=falkor
            pulumi stack ls 
 
-      - name: Loop over stacks and perform preview
+      - name: select and init stacks if its not there then create a new stack
         env:
          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
