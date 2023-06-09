@@ -54,13 +54,15 @@ jobs:
 
       - name: Configure AWS credentials
         run: |
-          aws configure set aws_access_key_id ${{ env[github.event.inputs.environment + '_ACCESS_KEY'] }}
-          aws configure set aws_secret_access_key ${{ env[github.event.inputs.environment + '_SECRET_ACCESS_KEY'] }}
-          aws configure set region ${{ env[github.event.inputs.environment + '_REGION'] }}   
+          environment=${{ github.event.inputs.environment }}
+          aws configure set aws_access_key_id ${{ env[environment + '_ACCESS_KEY'] }}
+          aws configure set aws_secret_access_key ${{ env[environment + '_SECRET_ACCESS_KEY'] }}
+          aws configure set region ${{ env[environment + '_REGION'] }}   
 
       - name: pulumi login s3
         run: |
-            pulumi login s3://${{ env[github.event.inputs.environment + '_BUCKET_NAME'] }}
+            environment=${{ github.event.inputs.environment }}
+            pulumi login s3://${{ env[environment + '_BUCKET_NAME'] }}
       
       - name: pulumi stacks
         run: |
