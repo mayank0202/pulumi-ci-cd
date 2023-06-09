@@ -64,7 +64,8 @@ jobs:
 
       - name: pulumi login s3
         run: |
-            pulumi login s3://${{ env[format('{0}_BUCKET_NAME', github.event.inputs.environment)] }}
+           environment=$ENVIRONMENT
+           pulumi login s3://${{ env[format('{0}_BUCKET_NAME', environment)] }}
  
       - name: pulumi stacks
         run: |
