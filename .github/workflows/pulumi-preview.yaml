@@ -42,6 +42,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+      
+      - name: Create AWS credentials directory
+        run: mkdir -p $HOME/.aws
 
       - name: Install Pulumi CLI
         run: |
