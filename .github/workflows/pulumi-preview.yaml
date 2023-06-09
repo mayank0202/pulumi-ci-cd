@@ -4,6 +4,33 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to preview'
+        required: true
+        default: 'dev'
+env:
+  DEV_ACCESS_KEY: ${{ secrets.DEV_ACCESS_KEY }}
+  DEV_SECRET_ACCESS_KEY: ${{ secrets.DEV_SECRET_ACCESS_KEY }}
+  DEV_BUCKET_NAME: pulumi-state-backend-909397982620
+  DEV_REGION: us-east-1
+
+  TEST_ACCESS_KEY: ${{ secrets.TEST_ACCESS_KEY }}
+  TEST_SECRET_ACCESS_KEY: ${{ secrets.TEST_SECRET_ACCESS_KEY }}
+  TEST_BUCKET_NAME: pulumi-state-bucket-backend
+  TEST_REGION: us-east-1
+
+  STAGING_ACCESS_KEY: ${{ secrets.STAGING_ACCESS_KEY }}
+  STAGING_SECRET_ACCESS_KEY: ${{ secrets.STAGING_SECRET_ACCESS_KEY }}
+  STAGING_BUCKET_NAME: pulumi-state-backend-250550834778
+  STAGING_REGION: us-east-1
+
+  PRODUCTION_ACCESS_KEY: ${{ secrets.PRODUCTION_ACCESS_KEY }}
+  PRODUCTION_SECRET_ACCESS_KEY: ${{ secrets.PRODUCTION_SECRET_ACCESS_KEY }}
+  PRODUCTION_BUCKET_NAME: pulumi-state-backend-297774485224    
+  PRODUCTION_REGION: us-east-1        
+
 jobs:
   pulumi-preview:
     runs-on: ubuntu-latest
@@ -16,6 +43,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+      
+      - name: Create AWS credentials directory
+        run: mkdir -p $HOME/.aws
 
       - name: Install Pulumi CLI
         run: |
@@ -27,28 +57,27 @@ jobs:
         run: npm install  # or yarn install  
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'us-east-1'     
+        run: |
+          echo "[default]" >> $HOME/.aws/credentials
+          echo "aws_access_key_id=${{ env[format('{0}_ACCESS_KEY', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
+          echo "aws_secret_access_key=${{ env[format('{0}_SECRET_ACCESS_KEY', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
+          echo "region=${{ env[format('{0}_REGION', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
 
       - name: pulumi login s3
         run: |
-           pulumi login s3://pulumi-ci-cd
-      
+          pulumi login s3://pulumi-state-backend-909397982620
+ 
       - name: pulumi stacks
         run: |
            export PULUMI_CONFIG_PASSPHRASE=falkor
            pulumi stack ls 
 
-      - name: Loop over stacks and perform preview
+      - name: select and init stacks if they don't exist
         env:
          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
-           pulumi stack select dev || pulumi stack init dev
+           pulumi stack select dev-${{ github.event.inputs.environment }} || pulumi stack init dev-${{ github.event.inputs.environment }}
            pulumi preview
 
-           pulumi stack select prod || pulumi stack init prod
+           pulumi stack select prod-${{ github.event.inputs.environment }} || pulumi stack init prod-${{ github.event.inputs.environment }}
            pulumi preview
-
