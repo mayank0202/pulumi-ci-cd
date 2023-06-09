@@ -9,6 +9,7 @@ on:
       environment:
         description: 'Environment to preview'
         required: true
+        default: 'dev'
 env:
   DEV_ACCESS_KEY: ${{ secrets.DEV_ACCESS_KEY }}
   DEV_SECRET_ACCESS_KEY: ${{ secrets.DEV_SECRET_ACCESS_KEY }}
@@ -65,7 +66,7 @@ jobs:
       - name: pulumi login s3
         run: |
            environment=$ENVIRONMENT
-           pulumi login s3://${{ env[format('{0}_BUCKET_NAME', environment)] }}
+           pulumi login s3://${{ env[github.event.inputs.environment + '_BUCKET_NAME'] }}
  
       - name: pulumi stacks
         run: |
