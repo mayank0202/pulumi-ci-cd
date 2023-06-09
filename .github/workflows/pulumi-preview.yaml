@@ -54,23 +54,21 @@ jobs:
 
       - name: Configure AWS credentials
         run: |
-          environment=$ENVIRONMENT
           echo "[default]" >> $HOME/.aws/credentials
-          echo "aws_access_key_id=${{ env[format('{0}_ACCESS_KEY', environment)] }}" >> $HOME/.aws/credentials
-          echo "aws_secret_access_key=${{ env[format('{0}_SECRET_ACCESS_KEY', environment)] }}" >> $HOME/.aws/credentials
-          echo "region=${{ env[format('{0}_REGION', environment)] }}" >> $HOME/.aws/credentials
+          echo "aws_access_key_id=${{ env[format('{0}_ACCESS_KEY', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
+          echo "aws_secret_access_key=${{ env[format('{0}_SECRET_ACCESS_KEY', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
+          echo "region=${{ env[format('{0}_REGION', github.event.inputs.environment)] }}" >> $HOME/.aws/credentials
 
       - name: pulumi login s3
         run: |
-            environment=$ENVIRONMENT
-            pulumi login s3://${{ env[format('{0}_BUCKET_NAME', environment)] }}
+            pulumi login s3://${{ env[format('{0}_BUCKET_NAME', github.event.inputs.environment)] }}
  
       - name: pulumi stacks
         run: |
            export PULUMI_CONFIG_PASSPHRASE=falkor
            pulumi stack ls 
 
-      - name: select and init stacks if its not there then create a new stack
+      - name: select and init stacks if they don't exist
         env:
          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
@@ -79,5 +77,3 @@ jobs:
 
            pulumi stack select prod-${{ github.event.inputs.environment }} || pulumi stack init prod-${{ github.event.inputs.environment }}
            pulumi preview
-
-
