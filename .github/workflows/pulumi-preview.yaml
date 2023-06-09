@@ -4,6 +4,32 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to preview'
+        required: true
+env:
+  DEV_ACCESS_KEY: ${{ secrets.DEV_ACCESS_KEY }}
+  DEV_SECRET_ACCESS_KEY: ${{ secrets.DEV_SECRET_ACCESS_KEY }}
+  DEV_BUCKET_NAME: pulumi-state-backend-909397982620
+  DEV_REGION: us-east-1
+
+  TEST_ACCESS_KEY: ${{ secrets.TEST_ACCESS_KEY }}
+  TEST_SECRET_ACCESS_KEY: ${{ secrets.TEST_SECRET_ACCESS_KEY }}
+  TEST_BUCKET_NAME: pulumi-state-bucket-backend
+  TEST_REGION: us-east-1
+
+  STAGING_ACCESS_KEY: ${{ secrets.STAGING_ACCESS_KEY }}
+  STAGING_SECRET_ACCESS_KEY: ${{ secrets.STAGING_SECRET_ACCESS_KEY }}
+  STAGING_BUCKET_NAME: pulumi-state-backend-250550834778
+  STAGING_REGION: us-east-1
+
+  PRODUCTION_ACCESS_KEY: ${{ secrets.PRODUCTION_ACCESS_KEY }}
+  PRODUCTION_SECRET_ACCESS_KEY: ${{ secrets.PRODUCTION_SECRET_ACCESS_KEY }}
+  PRODUCTION_BUCKET_NAME: pulumi-state-backend-297774485224    
+  PRODUCTION_REGION: us-east-1        
+
 jobs:
   pulumi-preview:
     runs-on: ubuntu-latest
@@ -27,15 +53,14 @@ jobs:
         run: npm install  # or yarn install  
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'us-east-1'     
+        run: |
+          aws configure set aws_access_key_id ${{ env[github.event.inputs.environment + '_ACCESS_KEY'] }}
+          aws configure set aws_secret_access_key ${{ env[github.event.inputs.environment + '_SECRET_ACCESS_KEY'] }}
+          aws configure set region ${{ env[github.event.inputs.environment + '_REGION'] }}   
 
       - name: pulumi login s3
         run: |
-           pulumi login s3://pulumi-ci-cd
+            pulumi login s3://${{ env[github.event.inputs.environment + '_BUCKET_NAME'] }}
       
       - name: pulumi stacks
         run: |
@@ -46,9 +71,10 @@ jobs:
         env:
          PULUMI_CONFIG_PASSPHRASE: "falkor"
         run: |
-           pulumi stack select dev || pulumi stack init dev
+           pulumi stack select dev-${{ github.event.inputs.environment }} || pulumi stack init dev-${{ github.event.inputs.environment }}
            pulumi preview
 
-           pulumi stack select prod || pulumi stack init prod
+           pulumi stack select prod-${{ github.event.inputs.environment }} || pulumi stack init prod-${{ github.event.inputs.environment }}
            pulumi preview
+
 
