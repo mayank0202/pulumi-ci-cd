@@ -65,9 +65,7 @@ jobs:
 
       - name: pulumi login s3
         run: |
-          bucket_name="${{ env[format('{0}_BUCKET_NAME', github.event.inputs.environment)] }}/${{ github.event.inputs.environment }}"
-          echo "Bucket Name: $bucket_name"
-          pulumi login s3://$bucket_name
+          pulumi login s3://pulumi-state-backend-909397982620
  
       - name: pulumi stacks
         run: |
